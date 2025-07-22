@@ -3,10 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Calculadora de Pensión de Alimentos 2025</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Arial', sans-serif;
       background: #f4f6f8;
       margin: 0;
       padding: 30px;
@@ -21,49 +20,49 @@
     }
     h1 {
       text-align: center;
-      color: #333;
+      color: #2c3e50;
     }
     label {
       display: block;
-      margin-top: 15px;
+      margin: 20px 0 10px;
       font-weight: bold;
     }
     input, select, button {
       width: 100%;
       padding: 10px;
-      margin-top: 5px;
+      margin-bottom: 15px;
       border-radius: 5px;
       border: 1px solid #ccc;
-      box-sizing: border-box;
+      font-size: 16px;
     }
     button {
       background-color: #4a90e2;
       color: white;
-      font-weight: bold;
       border: none;
-      margin-top: 20px;
       cursor: pointer;
     }
     button:hover {
       background-color: #357ab7;
     }
     .resultado {
-      margin-top: 20px;
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      background: #e1f5fe;
       padding: 15px;
-      background-color: #e7f4e4;
-      border-left: 5px solid #4caf50;
+      border-radius: 5px;
+      border: 1px solid #81d4fa;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Pensión de Alimentos 2025</h1>
-
     <label for="sbu">SBU 2025 (USD):</label>
     <input type="number" id="sbu" value="470" />
 
-    <label for="ingreso">Ingresos del Demandado (USD):</label>
-    <input type="number" id="ingreso" value="470" />
+    <label for="ingresos">Ingresos del Demandado (USD):</label>
+    <input type="number" id="ingresos" value="470" />
 
     <label for="hijos">Número de Hijos:</label>
     <select id="hijos">
@@ -75,60 +74,70 @@
 
     <label for="edad">Edad del/la Alimentado/a:</label>
     <select id="edad">
-      <option value="menor de 2">Menor de 2 años</option>
-      <option value="2 a 3">2 a 3 años</option>
-      <option value="3 en adelante">3 años en adelante</option>
+      <option value="menor3">Menor de 3 años</option>
+      <option value="mayor3">3 años en adelante</option>
     </select>
 
     <label for="discapacidad">Discapacidad del/la Alimentado/a:</label>
     <select id="discapacidad">
       <option value="ninguna">Ninguna</option>
-      <option value="leve">Leve</option>
-      <option value="moderada">Moderada</option>
-      <option value="grave">Grave</option>
+      <option value="leve">30% - 49%</option>
+      <option value="moderada">50% - 74%</option>
+      <option value="grave">75% o más</option>
     </select>
 
     <button onclick="calcularPension()">Calcular Pensión</button>
-    <div id="resultado" class="resultado" style="display:none;"></div>
+
+    <div class="resultado" id="resultado"></div>
   </div>
 
   <script>
-    function calcularPension() {
-      const sbu = parseFloat(document.getElementById("sbu").value);
-      const ingreso = parseFloat(document.getElementById("ingreso").value);
-      const hijos = parseInt(document.getElementById("hijos").value);
-      const edad = document.getElementById("edad").value;
-      const discapacidad = document.getElementById("discapacidad").value;
-
-      let porcentajePorHijo = 0;
-
-      if (ingreso <= sbu) {
-        if (edad === "menor de 2") {
-          if (hijos === 1) porcentajePorHijo = 0.3461;
-          else if (hijos === 2) porcentajePorHijo = 0.2719;
-          else if (hijos === 3) porcentajePorHijo = 0.2281;
-          else porcentajePorHijo = 0.2156;
-        } else if (edad === "2 a 3") {
-          if (hijos === 1) porcentajePorHijo = 0.3539;
-          else if (hijos === 2) porcentajePorHijo = 0.2781;
-          else if (hijos === 3) porcentajePorHijo = 0.2335;
-          else porcentajePorHijo = 0.2209;
-        } else {
-          if (hijos === 1) porcentajePorHijo = 0.3620;
-          else if (hijos === 2) porcentajePorHijo = 0.2812;
-          else if (hijos === 3) porcentajePorHijo = 0.2393;
-          else porcentajePorHijo = 0.2267;
+    function obtenerPorcentajeBase(ingresos, hijos, edad) {
+      const tabla = {
+        '1': {
+          'menor3': [[0, 524], 40.90],
+          'mayor3': [[0, 524], 36.92]
+        },
+        '2': {
+          'menor3': [[0, 524], 51.13],
+          'mayor3': [[0, 524], 43.14]
+        },
+        '3': {
+          'menor3': [[0, 524], 61.35],
+          'mayor3': [[0, 524], 49.36]
+        },
+        '4': {
+          'menor3': [[0, 524], 65.46],
+          'mayor3': [[0, 524], 53.47]
         }
+      };
 
-        var total = sbu * porcentajePorHijo * hijos;
-      } else {
-        var total = ingreso * 0.28; // temporal si es mayor al SBU
+      let rango = tabla[hijos] && tabla[hijos][edad];
+      if (rango && ingresos >= rango[0][0] && ingresos <= rango[0][1]) {
+        return rango[1];
       }
 
-      document.getElementById("resultado").style.display = "block";
-      document.getElementById("resultado").innerText = `Pensión mensual estimada: $${total.toFixed(2)}`;
+      // A falta de más rangos oficiales, usar estimado
+      return edad === 'menor3' ? 45 : 36;
+    }
+
+    function calcularPension() {
+      const sbu = parseFloat(document.getElementById('sbu').value);
+      const ingresos = parseFloat(document.getElementById('ingresos').value);
+      const hijos = document.getElementById('hijos').value;
+      const edad = document.getElementById('edad').value;
+      const discapacidad = document.getElementById('discapacidad').value;
+
+      let porcentaje = obtenerPorcentajeBase(ingresos, hijos, edad);
+
+      if (discapacidad === 'leve') porcentaje += 5;
+      else if (discapacidad === 'moderada') porcentaje += 10;
+      else if (discapacidad === 'grave') porcentaje += 15;
+
+      const pension = ingresos * (porcentaje / 100);
+      document.getElementById('resultado').innerText = 
+        'Pensión mensual estimada: $' + pension.toFixed(2);
     }
   </script>
 </body>
 </html>
-
