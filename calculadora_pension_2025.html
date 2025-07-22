@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Calculadora de Pensión 2025</title>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #eef2f6;
+      padding: 40px;
+      margin: 0;
+    }
+    .container {
+      background-color: #fff;
+      max-width: 800px;
+      margin: auto;
+      border-radius: 20px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+      padding: 40px;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 30px;
+    }
+    label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 6px;
+      color: #34495e;
+    }
+    input, select {
+      width: 100%;
+      padding: 14px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 1rem;
+      background: #fdfdfd;
+    }
+    button {
+      width: 100%;
+      background-color: #5d9cec;
+      color: white;
+      padding: 16px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 6px 15px rgba(93, 156, 236, 0.3);
+    }
+    button:hover {
+      background-color: #4a89dc;
+    }
+    .result, .error {
+      text-align: center;
+      font-weight: bold;
+      margin-top: 20px;
+      font-size: 1.2rem;
+    }
+    .result {
+      background: #e6f2ff;
+      padding: 15px;
+      border-radius: 12px;
+      color: #2c3e50;
+      border: 1px solid #b3d9ff;
+    }
+    .error {
+      color: #e74c3c;
+    }
+    .disclaimer {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 0.85rem;
+      color: #7f8c8d;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Calculadora de Pensión de Alimentos 2025</h1>
+
+    <label for="sbu">SBU 2025 (USD):</label>
+    <input type="number" id="sbu" value="470" />
+
+    <label for="income">Ingresos del Demandado (USD):</label>
+    <input type="number" id="income" />
+
+    <label for="children">Número de Hijos:</label>
+    <select id="children">
+      <option value="1">1 hijo/a</option>
+      <option value="2">2 hijos/as</option>
+      <option value="3+">3 o más hijos/as</option>
+    </select>
+
+    <label for="age">Edad del/la Alimentado/a:</label>
+    <select id="age">
+      <option value="0-2">0 a 2 años</option>
+      <option value="3+">3 años en adelante</option>
+    </select>
+
+    <label for="disability">Discapacidad del/la Alimentado/a:</label>
+    <select id="disability">
+      <option value="none">Ninguna</option>
+      <option value="30-49">30% - 49%</option>
+      <option value="50-74">50% - 74%</option>
+      <option value="75-100">75% - 100%</option>
+    </select>
+
+    <button onclick="calculate()">Calcular Pensión</button>
+
+    <div id="result" class="result" style="display:none;"></div>
+    <div id="error" class="error" style="display:none;"></div>
+
+    <div class="disclaimer">
+      Basado en la tabla oficial del Consejo de la Judicatura del Ecuador (2025).
+    </div>
+  </div>
+
+  <script>
+    const TABLE = {
+      "Nivel 1": {
+        "1": { "0-2": 0.2812, "3+": 0.2949 },
+        "2": { "0-2": 0.3971, "3+": 0.4313 },
+        "3+": { "0-2": 0.5218, "3+": 0.5423 }
+      },
+      "Nivel 2": {
+        "1": { "0-2": 0.3484, "3+": 0.3696 },
+        "2": { "0-2": 0.4745, "3+": 0.4951 }
+      },
+      "Nivel 3": {
+        "1": { "0-2": 0.3849, "3+": 0.4083 }
+      },
+      "Nivel 4": {
+        "1": { "0-2": 0.3979, "3+": 0.4221 }
+      },
+      "Nivel 5": {
+        "1": { "0-2": 0.4114, "3+": 0.4364 }
+      },
+      "Nivel 6": {
+        "1": { "0-2": 0.4253, "3+": 0.4512 }
+      }
+    };
+
+    const LEVELS = [
+      { min: 1.00, max: 1.25, name: "Nivel 1" },
+      { min: 1.2501, max: 3.00, name: "Nivel 2" },
+      { min: 3.0001, max: 4.00, name: "Nivel 3" },
+      { min: 4.0001, max: 6.50, name: "Nivel 4" },
+      { min: 6.5001, max: 9.00, name: "Nivel 5" },
+      { min: 9.0001, max: Infinity, name: "Nivel 6" }
+    ];
+
+    function calculate() {
+      const sbu = parseFloat(document.getElementById("sbu").value);
+      const income = parseFloat(document.getElementById("income").value);
+      const children = document.getElementById("children").value;
+      const age = document.getElementById("age").value;
+      const disability = document.getElementById("disability").value;
+      const result = document.getElementById("result");
+      const error = document.getElementById("error");
+
+      result.style.display = "none";
+      error.style.display = "none";
+
+      if (!sbu || !income) {
+        error.textContent = "Completa los campos requeridos.";
+        error.style.display = "block";
+        return;
+      }
+
+      const incomeLevel = income / sbu;
+      const level = LEVELS.find(l => incomeLevel >= l.min && incomeLevel <= l.max);
+      if (!level) {
+        error.textContent = "Nivel de ingresos no encontrado en la tabla.";
+        error.style.display = "block";
+        return;
+      }
+
+      const levelData = TABLE[level.name];
+      if (!levelData || !levelData[children] || !levelData[children][age]) {
+        error.textContent = "Combinación no encontrada en la tabla.";
+        error.style.display = "block";
+        return;
+      }
+
+      let pension = income * levelData[children][age];
+
+      if (disability !== "none" && level.name === "Nivel 1" && children === "2") {
+        const disabilityRates = { "30-49": 0.0456, "50-74": 0.0523, "75-100": 0.0663 };
+        pension += sbu * disabilityRates[disability];
+      }
+
+      result.textContent = `Pensión mensual estimada: $${pension.toFixed(2)}`;
+      result.style.display = "block";
+    }
+  </script>
+</body>
+</html>
