@@ -5,139 +5,234 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <style>
     body {
-      font-family: 'Arial', sans-serif;
-      background: #f4f6f8;
+      font-family: 'Inter', sans-serif;
+      background-color: #eef2f6;
+      padding: 40px;
       margin: 0;
-      padding: 30px;
     }
     .container {
-      max-width: 600px;
+      background-color: #fff;
+      max-width: 800px;
       margin: auto;
-      background: #fff;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+      border-radius: 20px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+      padding: 40px;
     }
     h1 {
       text-align: center;
       color: #2c3e50;
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 30px;
     }
     label {
+      font-weight: 600;
       display: block;
-      margin: 20px 0 10px;
-      font-weight: bold;
+      margin-bottom: 6px;
+      color: #34495e;
     }
-    input, select, button {
+    input, select {
       width: 100%;
-      padding: 10px;
-      margin-bottom: 15px;
-      border-radius: 5px;
+      padding: 14px;
+      margin-bottom: 20px;
       border: 1px solid #ccc;
-      font-size: 16px;
+      border-radius: 10px;
+      font-size: 1rem;
+      background: #fdfdfd;
     }
     button {
-      background-color: #4a90e2;
+      width: 100%;
+      background-color: #5d9cec;
       color: white;
+      padding: 16px;
+      font-size: 1.1rem;
+      font-weight: 600;
       border: none;
+      border-radius: 10px;
       cursor: pointer;
+      box-shadow: 0 6px 15px rgba(93, 156, 236, 0.3);
     }
     button:hover {
-      background-color: #357ab7;
+      background-color: #4a89dc;
     }
-    .resultado {
+    .result-container {
       text-align: center;
-      font-size: 20px;
       font-weight: bold;
-      background: #e1f5fe;
+      margin-top: 20px;
+      font-size: 1.2rem;
+      background: #e6f2ff;
       padding: 15px;
-      border-radius: 5px;
-      border: 1px solid #81d4fa;
+      border-radius: 12px;
+      color: #2c3e50;
+      border: 1px solid #b3d9ff;
+    }
+    .error-message {
+      color: #e74c3c;
+      font-weight: bold;
+      margin-top: 20px;
+      font-size: 1.2rem;
+      text-align: center;
+    }
+    .disclaimer {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 0.85rem;
+      color: #7f8c8d;
+    }
+    .child-group {
+      border: 1px solid #e0e0e0;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      background-color: #fcfcfc;
+    }
+    .child-group h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #34495e;
+      margin-bottom: 10px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Pensión de Alimentos 2025</h1>
-    <label for="sbu">SBU 2025 (USD):</label>
-    <input type="number" id="sbu" value="470" />
+    <h1>Calculadora de Pensión de Alimentos 2025</h1>
 
-    <label for="ingresos">Ingresos del Demandado (USD):</label>
-    <input type="number" id="ingresos" value="470" />
+    <label for="sbuValue">SBU 2025 (USD):</label>
+    <input type="text" id="sbuValue" value="470.00" readonly />
 
-    <label for="hijos">Número de Hijos:</label>
-    <select id="hijos">
+    <label for="defendantIncome">Ingresos del Demandado (USD):</label>
+    <input type="number" id="defendantIncome" placeholder="Ej: 1000.00" />
+
+    <label for="numChildren">Número de Hijos:</label>
+    <select id="numChildren">
       <option value="1">1 hijo/a</option>
       <option value="2">2 hijos/as</option>
       <option value="3">3 hijos/as</option>
-      <option value="4">4 o más hijos/as</option>
     </select>
 
-    <label for="edad">Edad del/la Alimentado/a:</label>
-    <select id="edad">
-      <option value="menor3">Menor de 3 años</option>
-      <option value="mayor3">3 años en adelante</option>
-    </select>
+    <div id="childFieldsContainer"></div>
 
-    <label for="discapacidad">Discapacidad del/la Alimentado/a:</label>
-    <select id="discapacidad">
-      <option value="ninguna">Ninguna</option>
-      <option value="leve">30% - 49%</option>
-      <option value="moderada">50% - 74%</option>
-      <option value="grave">75% o más</option>
-    </select>
+    <button onclick="calculatePension()">Calcular Pensión</button>
 
-    <button onclick="calcularPension()">Calcular Pensión</button>
+    <div id="result" class="result-container" style="display:none;">
+      <p>Pensión de Alimentos: <span id="pensionAmount"></span></p>
+    </div>
+    <div id="errorMessage" class="error-message" style="display:none;"></div>
 
-    <div class="resultado" id="resultado"></div>
+    <div class="disclaimer">
+      <p>
+        Esta calculadora se basa en la "TABLA DE PENSIONES ALIMENTICIAS MÍNIMAS 2025"
+        proporcionada por el Consejo de la Judicatura de Ecuador.
+      </p>
+    </div>
   </div>
 
   <script>
-    function obtenerPorcentajeBase(ingresos, hijos, edad) {
-      const tabla = {
-        '1': {
-          'menor3': [[0, 524], 40.90],
-          'mayor3': [[0, 524], 36.92]
-        },
-        '2': {
-          'menor3': [[0, 524], 51.13],
-          'mayor3': [[0, 524], 43.14]
-        },
-        '3': {
-          'menor3': [[0, 524], 61.35],
-          'mayor3': [[0, 524], 49.36]
-        },
-        '4': {
-          'menor3': [[0, 524], 65.46],
-          'mayor3': [[0, 524], 53.47]
-        }
-      };
+    const SBU_VALUE_2025 = 470.0;
 
-      let rango = tabla[hijos] && tabla[hijos][edad];
-      if (rango && ingresos >= rango[0][0] && ingresos <= rango[0][1]) {
-        return rango[1];
+    const DISABILITY_ADDON_FIXED_AMOUNT = {
+      "none": 0,
+      "30-49": 23.5,
+      "50-74": 47.0,
+      "75-100": 94.0,
+    };
+
+    document.getElementById("numChildren").addEventListener("change", generateChildFields);
+
+    function generateChildFields() {
+      const numChildren = parseInt(document.getElementById("numChildren").value);
+      const container = document.getElementById("childFieldsContainer");
+      container.innerHTML = "";
+
+      for (let i = 1; i <= numChildren; i++) {
+        const childDiv = document.createElement("div");
+        childDiv.className = "child-group";
+        childDiv.innerHTML = `
+          <h3>Hijo/a ${i}</h3>
+          <label for="childAge_${i}">Edad:</label>
+          <select id="childAge_${i}">
+            <option value="0-2">Menor de 3 años</option>
+            <option value="3+">3 años en adelante</option>
+          </select>
+
+          <label for="childDisability_${i}">Discapacidad:</label>
+          <select id="childDisability_${i}">
+            <option value="none">Ninguna</option>
+            <option value="30-49">Leve (30%-49%)</option>
+            <option value="50-74">Moderada (50%-74%)</option>
+            <option value="75-100">Severa (75%-100%)</option>
+          </select>
+        `;
+        container.appendChild(childDiv);
+      }
+    }
+
+    function calculatePension() {
+      const income = parseFloat(document.getElementById("defendantIncome").value);
+      const numChildren = parseInt(document.getElementById("numChildren").value);
+      const resultDiv = document.getElementById("result");
+      const errorDiv = document.getElementById("errorMessage");
+      const pensionSpan = document.getElementById("pensionAmount");
+
+      resultDiv.style.display = "none";
+      errorDiv.style.display = "none";
+      errorDiv.textContent = "";
+
+      if (isNaN(income) || income < SBU_VALUE_2025) {
+        errorDiv.textContent = "El ingreso debe ser mayor o igual al SBU ($470).";
+        errorDiv.style.display = "block";
+        return;
       }
 
-      // A falta de más rangos oficiales, usar estimado
-      return edad === 'menor3' ? 45 : 36;
+      const incomeInSBU = income / SBU_VALUE_2025;
+      let nivel = 0;
+
+      if (incomeInSBU <= 1.25) nivel = 1;
+      else if (incomeInSBU <= 3.0) nivel = 2;
+      else if (incomeInSBU <= 4.0) nivel = 3;
+      else if (incomeInSBU <= 6.5) nivel = 4;
+      else if (incomeInSBU <= 9.0) nivel = 5;
+      else nivel = 6;
+
+      let edadBase = document.getElementById("childAge_1")?.value || "0-2";
+      let basePorcentaje = 0.3;
+
+      const tabla = {
+        1: { "1": { "0-2": 0.305, "3+": 0.2949 }, "2": { "0-2": 0.3971, "3+": 0.4313 }, "3": { "0-2": 0.5218, "3+": 0.5423 } },
+        2: { "1": { "0-2": 0.345, "3+": 0.3696 }, "2": { "0-2": 0.4745, "3+": 0.345 }, "3": { "0-2": 0.48, "3+": 0.51 } },
+        3: { "1": { "0-2": 0.3849, "3+": 0.4083 }, "2": { "0-2": 0.5196, "3+": 0.5512 }, "3": { "0-2": 0.36, "3+": 0.34 } },
+        4: { "1": { "0-2": 0.3979, "3+": 0.4221 }, "2": { "0-2": 0.54, "3+": 0.58 }, "3": { "0-2": 0.48, "3+": 0.50 } },
+        5: { "1": { "0-2": 0.4114, "3+": 0.4364 }, "2": { "0-2": 0.33, "3+": 0.35 }, "3": { "0-2": 0.67, "3+": 0.7 } },
+        6: { "1": { "0-2": 0.4253, "3+": 0.4512 }, "2": { "0-2": 0.58, "3+": 0.62 }, "3": { "0-2": 0.69, "3+": 0.345 } },
+      };
+
+      const keyHijos = numChildren >= 3 ? "3" : numChildren.toString();
+
+      if (
+        tabla[nivel] &&
+        tabla[nivel][keyHijos] &&
+        tabla[nivel][keyHijos][edadBase]
+      ) {
+        basePorcentaje = tabla[nivel][keyHijos][edadBase];
+      } else {
+        errorDiv.textContent = "No se pudo calcular con esta combinación de datos.";
+        errorDiv.style.display = "block";
+        return;
+      }
+
+      let pension = basePorcentaje * income;
+
+      for (let i = 1; i <= numChildren; i++) {
+        const discapacidad = document.getElementById(`childDisability_${i}`)?.value || "none";
+        pension += DISABILITY_ADDON_FIXED_AMOUNT[discapacidad] || 0;
+      }
+
+      pensionSpan.textContent = `$${pension.toFixed(2)}`;
+      resultDiv.style.display = "block";
     }
 
-    function calcularPension() {
-      const sbu = parseFloat(document.getElementById('sbu').value);
-      const ingresos = parseFloat(document.getElementById('ingresos').value);
-      const hijos = document.getElementById('hijos').value;
-      const edad = document.getElementById('edad').value;
-      const discapacidad = document.getElementById('discapacidad').value;
-
-      let porcentaje = obtenerPorcentajeBase(ingresos, hijos, edad);
-
-      if (discapacidad === 'leve') porcentaje += 5;
-      else if (discapacidad === 'moderada') porcentaje += 10;
-      else if (discapacidad === 'grave') porcentaje += 15;
-
-      const pension = ingresos * (porcentaje / 100);
-      document.getElementById('resultado').innerText = 
-        'Pensión mensual estimada: $' + pension.toFixed(2);
-    }
+    window.onload = generateChildFields;
   </script>
 </body>
 </html>
