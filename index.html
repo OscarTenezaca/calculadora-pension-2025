@@ -140,20 +140,20 @@
     for (let i = 1; i <= num; i++) {
       const div = document.createElement("div");
       div.className = "child-group";
-      div.innerHTML = `
-        <h3>Hijo/a ${i}</h3>
+      div.innerHTML = \`
+        <h3>Hijo/a \${i}</h3>
         <label>Edad:</label>
-        <select id="childAge_${i}">
+        <select id="childAge_\${i}">
           <option value="0-2">Menor de 3 años</option>
           <option value="3+">3 años en adelante</option>
         </select>
         <label>Discapacidad:</label>
-        <select id="childDisability_${i}">
+        <select id="childDisability_\${i}">
           <option value="none">Ninguna</option>
           <option value="30-49">Leve (30-49%)</option>
           <option value="50-74">Moderada (50-74%)</option>
           <option value="75-100">Severa (75-100%)</option>
-        </select>`;
+        </select>\`;
       container.appendChild(div);
     }
   }
@@ -184,8 +184,8 @@
     let disabilityTotal = 0;
 
     for (let i = 1; i <= num; i++) {
-      const age = document.getElementById(`childAge_${i}`).value;
-      const disability = document.getElementById(`childDisability_${i}`).value;
+      const age = document.getElementById(\`childAge_\${i}\`).value;
+      const disability = document.getElementById(\`childDisability_\${i}\`).value;
       if (i === 1) mainAgeGroup = age;
       if (disability === "75-100") countSevere++;
       disabilityTotal += DISABILITY_BONUS[disability] || 0;
@@ -205,7 +205,7 @@
     }
 
     const total = (base * income + disabilityTotal).toFixed(2);
-    document.getElementById("pensionAmount").textContent = `$${total}`;
+    document.getElementById("pensionAmount").textContent = \`$\${total}\`;
     result.style.display = "block";
   }
 
@@ -213,4 +213,3 @@
 </script>
 </body>
 </html>
-
