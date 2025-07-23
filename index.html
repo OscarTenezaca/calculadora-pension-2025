@@ -209,13 +209,14 @@
     result.style.display = "block";
   }
 
-  // Event listeners una vez cargado todo
-  window.onload = function () {
+  // Configuración inicial al cargar
+  window.addEventListener("DOMContentLoaded", () => {
     generateChildFields();
     document.getElementById("numChildren").addEventListener("change", generateChildFields);
     document.getElementById("calculateBtn").addEventListener("click", calculatePension);
-  };
+  });
 </script>
 </body>
 </html>
+
 
